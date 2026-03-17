@@ -59,12 +59,11 @@
     position: fixed; inset: 0; z-index: 100;
     background: rgba(92, 74, 110, 0.4);
     backdrop-filter: blur(8px);
-    display: none; align-items: center; justify-content: center;
+    display: none;
+    align-items: center; justify-content: center;
     padding: 20px;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s ease;
   }
-  #modal-overlay.show { display: flex; opacity: 1; pointer-events: all; }
+  #modal-overlay.show { display: flex; }
 
   #modal-box {
     background: var(--white);
@@ -72,11 +71,8 @@
     padding: 36px 32px;
     max-width: 440px; width: 100%;
     box-shadow: 0 20px 60px rgba(92,74,110,0.25);
-    transform: translateY(20px);
-    transition: transform 0.3s ease;
     text-align: center;
   }
-  #modal-overlay.show #modal-box { transform: translateY(0); }
 
   .modal-emoji { font-size: 3rem; margin-bottom: 12px; display: block; }
   #modal-box h2 {
