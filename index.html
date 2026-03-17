@@ -236,15 +236,63 @@
   #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(40px); background: var(--text); color: var(--white); padding: 12px 24px; border-radius: 30px; font-size: 0.875rem; font-weight: 700; z-index: 200; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.2); white-space: nowrap; opacity: 0; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
+  /* ===== REKAP BULANAN ===== */
+  .rekap-grid { display: flex; flex-direction: column; gap: 10px; }
+  .rekap-item { background: var(--cream); border-radius: var(--radius-s); padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; }
+  .rekap-item:hover { background: #f0e8f8; }
+  .rekap-bulan { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.95rem; min-width: 80px; }
+  .rekap-stats { flex: 1; display: flex; gap: 16px; flex-wrap: wrap; }
+  .rekap-stat { font-size: 0.78rem; color: var(--text-s); }
+  .rekap-stat span { font-weight: 700; }
+  .rekap-stat span.pos { color: #5CAF8A; }
+  .rekap-stat span.neg { color: #E8637A; }
+  .rekap-profit { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.9rem; text-align: right; white-space: nowrap; }
+
+  /* ===== REMINDER ===== */
+  .reminder-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+  .reminder-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .reminder-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--cream); border-radius: var(--radius-s); transition: background 0.2s; }
+  .reminder-item.overdue { border-left: 4px solid #E8637A; background: #fff5f7; }
+  .reminder-item.soon { border-left: 4px solid var(--yellow-d); }
+  .reminder-item.ok { border-left: 4px solid var(--mint-d); }
+  .reminder-info { flex: 1; min-width: 0; }
+  .reminder-name { font-weight: 700; font-size: 0.9rem; }
+  .reminder-due { font-size: 0.75rem; color: var(--text-s); margin-top: 2px; }
+  .reminder-amount { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--text); white-space: nowrap; }
+  .reminder-del { background: none; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-s); padding: 4px; border-radius: 6px; transition: all 0.2s; flex-shrink: 0; }
+  .reminder-del:hover { background: var(--pink); }
+  .reminder-chip { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; margin-left: 6px; }
+  .reminder-chip.overdue { background: #FFD6DC; color: #E8637A; }
+  .reminder-chip.soon { background: var(--yellow); color: var(--text); }
+  .reminder-chip.ok { background: var(--mint); color: var(--text); }
+
+  /* ===== NOTES ===== */
+  .trx-notes { font-size: 0.72rem; color: var(--text-s); font-style: italic; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ===== PRINT ===== */
+  .btn-print { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--lav); border: none; border-radius: 30px; font-family: inherit; font-weight: 700; font-size: 0.82rem; color: var(--text); cursor: pointer; transition: background 0.2s; }
+  .btn-print:hover { background: var(--lav-d); color: var(--white); }
+
+  @media print {
+    body::before, #btn-settings, #toast, #modal-overlay { display: none !important; }
+    .tabs, .filter-bar, .btn-print, .btn-submit, .trx-del, .reminder-del { display: none !important; }
+    .panel { display: block !important; }
+    .app { padding: 0; }
+    .card, .chart-wrap, .rekap-item { box-shadow: none; border: 1px solid #ddd; }
+    body { background: white; }
+  }
+
   @media (max-width: 600px) {
     .form-grid { grid-template-columns: 1fr; }
     .form-grid .full { grid-column: 1; }
     .chart-grid { grid-template-columns: 1fr; }
     .budget-form-grid { grid-template-columns: 1fr 1fr; }
+    .reminder-form-grid { grid-template-columns: 1fr 1fr; }
     .summary-grid { grid-template-columns: 1fr 1fr; }
     header h1 { font-size: 1.5rem; }
     .tabs { flex-wrap: wrap; width: 100%; }
-    .tab-btn { flex: 1; text-align: center; }
+    .tab-btn { flex: 1; text-align: center; font-size: 0.78rem; padding: 8px 10px; }
+    .rekap-stats { gap: 8px; }
   }
 </style>
 </head>
@@ -304,6 +352,8 @@
     <button class="tab-btn active" onclick="switchTab('transaksi', this)">📋 Transaksi</button>
     <button class="tab-btn" onclick="switchTab('budget', this)">🎯 Budget</button>
     <button class="tab-btn" onclick="switchTab('grafik', this)">📊 Grafik</button>
+    <button class="tab-btn" onclick="switchTab('rekap', this)">📅 Rekap</button>
+    <button class="tab-btn" onclick="switchTab('reminder', this)">🔔 Reminder</button>
   </div>
 
   <!-- PANEL: TRANSAKSI -->
@@ -340,6 +390,10 @@
         <div class="form-group full">
           <label>Deskripsi</label>
           <input type="text" id="f-deskripsi" placeholder="Contoh: SPP Maret — Kelompok A" />
+        </div>
+        <div class="form-group full">
+          <label>Catatan (opsional)</label>
+          <input type="text" id="f-notes" placeholder="Detail tambahan..." />
         </div>
       </div>
       <button class="btn-submit" onclick="submitTransaksi()">+ Tambah Transaksi</button>
@@ -398,6 +452,55 @@
     <div class="chart-wrap" style="margin-top:16px">
       <div class="card-title" style="margin-bottom:12px">📈 Tren Bulanan</div>
       <canvas id="chart-tren" style="max-height:200px"></canvas>
+    </div>
+  </div>
+
+  <!-- PANEL: REKAP BULANAN -->
+  <div id="panel-rekap" class="panel">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span>📅 Rekap Bulanan</span>
+        <button class="btn-print" onclick="printRekap()">🖨️ Cetak / PDF</button>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Filter Kategori</label>
+        <select id="rekap-filter-bisnis" onchange="loadRekap()">
+          <option value="semua">🏠 Semua</option>
+          <option value="Swim Movement">🏊 Swim Movement</option>
+          <option value="Love Box">🎵 Love Box</option>
+          <option value="Personal">🌿 Personal</option>
+        </select>
+      </div>
+      <div id="rekap-container"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- PANEL: REMINDER -->
+  <div id="panel-reminder" class="panel">
+    <div class="card">
+      <div class="card-title">🔔 Tambah Reminder Tagihan</div>
+      <div class="reminder-form-grid">
+        <div class="form-group">
+          <label>Nama Tagihan</label>
+          <input type="text" id="rm-nama" placeholder="Contoh: Sewa Kolam" />
+        </div>
+        <div class="form-group">
+          <label>Jatuh Tempo</label>
+          <input type="date" id="rm-tanggal" />
+        </div>
+        <div class="form-group">
+          <label>Nominal (Rp)</label>
+          <input type="number" id="rm-nominal" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <button class="btn-submit" onclick="addReminder()" style="margin:0">+ Tambah</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Daftar Reminder</div>
+      <div id="reminder-container"></div>
     </div>
   </div>
 
@@ -472,6 +575,7 @@ async function api(params) {
 async function loadAllData() {
   await Promise.all([loadKategori(), loadTransaksi(), loadSummary()]);
   loadBudgetKategori();
+  checkReminderAlert();
 }
 
 function refreshAll() {
@@ -540,7 +644,9 @@ function renderTransaksi(list) {
     html += '<div class="trx-item ' + t.tipe + '">';
     html += '<div class="trx-icon">' + icon + '</div>';
     html += '<div class="trx-info"><div class="trx-desc">' + (t.deskripsi || t.kategori) + '</div>';
-    html += '<div class="trx-meta"><span class="badge ' + bc + '">' + t.bisnis + '</span> &nbsp;' + t.kategori + ' · ' + formatTanggal(t.tanggal) + '</div></div>';
+    html += '<div class="trx-meta"><span class="badge ' + bc + '">' + t.bisnis + '</span> &nbsp;' + t.kategori + ' · ' + formatTanggal(t.tanggal) + '</div>';
+    if (t.notes) html += '<div class="trx-notes">📝 ' + t.notes + '</div>';
+    html += '</div>';
     html += '<div class="trx-amount">' + sign + formatRp(t.nominal) + '</div>';
     html += '<button class="trx-del" onclick="deleteTransaksi(\'' + t.id + '\')" title="Hapus">🗑️</button>';
     html += '</div>';
@@ -555,12 +661,14 @@ async function submitTransaksi() {
   const kategori = document.getElementById('f-kategori').value;
   const nominal = document.getElementById('f-nominal').value;
   const deskripsi = document.getElementById('f-deskripsi').value;
+  const notes = document.getElementById('f-notes').value;
   if (!tanggal || !nominal || !kategori) { showToast('⚠️ Lengkapi dulu ya!'); return; }
-  const data = await api({ action: 'addTransaction', tanggal, bisnis, tipe: selectedTipe, kategori, deskripsi, nominal });
+  const data = await api({ action: 'addTransaction', tanggal, bisnis, tipe: selectedTipe, kategori, deskripsi, nominal, notes });
   if (data && data.success) {
     showToast('✅ Tersimpan!');
     document.getElementById('f-nominal').value = '';
     document.getElementById('f-deskripsi').value = '';
+    document.getElementById('f-notes').value = '';
     refreshAll();
   }
 }
@@ -698,6 +806,8 @@ function switchTab(tab, btn) {
   btn.classList.add('active');
   if (tab === 'budget') loadBudget();
   if (tab === 'grafik') loadGrafik();
+  if (tab === 'rekap') loadRekap();
+  if (tab === 'reminder') renderReminders();
 }
 
 // ===== HELPERS =====
@@ -720,6 +830,128 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2800);
 }
+
+// ===== REKAP BULANAN =====
+async function loadRekap() {
+  const bisnis = document.getElementById('rekap-filter-bisnis').value;
+  document.getElementById('rekap-container').innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
+  // Load all data (no month filter) for all-time summary grouped by month
+  const data = await api({ action: 'getSummary', bisnis });
+  if (!data) return;
+  renderRekap(data.monthlyMap);
+}
+
+function renderRekap(monthlyMap) {
+  const el = document.getElementById('rekap-container');
+  if (!monthlyMap || Object.keys(monthlyMap).length === 0) {
+    el.innerHTML = '<div class="empty"><span class="empty-emoji">📅</span>Belum ada data~</div>';
+    return;
+  }
+  const sorted = Object.keys(monthlyMap).sort().reverse();
+  const bulanNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  let html = '<div class="rekap-grid">';
+  sorted.forEach(function(k) {
+    const m = monthlyMap[k];
+    const profit = m.pemasukan - m.pengeluaran;
+    const p = k.split('-');
+    const label = bulanNames[parseInt(p[1])-1] + ' ' + p[0];
+    html += '<div class="rekap-item" onclick="jumpToBulan('' + k + '')">';
+    html += '<div class="rekap-bulan">' + label + '</div>';
+    html += '<div class="rekap-stats">';
+    html += '<div class="rekap-stat">Masuk <span class="pos">' + formatRp(m.pemasukan) + '</span></div>';
+    html += '<div class="rekap-stat">Keluar <span class="neg">' + formatRp(m.pengeluaran) + '</span></div>';
+    html += '</div>';
+    html += '<div class="rekap-profit ' + (profit >= 0 ? 'positive' : 'negative') + '">' + (profit >= 0 ? '+' : '') + formatRp(profit) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function jumpToBulan(ym) {
+  document.getElementById('filter-bulan').value = ym;
+  switchTab('transaksi', document.querySelector('.tab-btn'));
+  document.querySelector('.tab-btn').classList.add('active');
+  refreshAll();
+}
+
+function printRekap() {
+  window.print();
+}
+
+// ===== REMINDER (localStorage) =====
+function getReminders() {
+  try { return JSON.parse(localStorage.getItem('kb_reminders') || '[]'); } catch(e) { return []; }
+}
+function saveReminders(list) { localStorage.setItem('kb_reminders', JSON.stringify(list)); }
+
+function addReminder() {
+  const nama = document.getElementById('rm-nama').value.trim();
+  const tanggal = document.getElementById('rm-tanggal').value;
+  const nominal = document.getElementById('rm-nominal').value;
+  if (!nama || !tanggal) { showToast('⚠️ Nama & tanggal wajib!'); return; }
+  const list = getReminders();
+  list.push({ id: 'rm-' + Date.now(), nama, tanggal, nominal: nominal || 0 });
+  saveReminders(list);
+  document.getElementById('rm-nama').value = '';
+  document.getElementById('rm-tanggal').value = '';
+  document.getElementById('rm-nominal').value = '';
+  renderReminders();
+  showToast('🔔 Reminder ditambahkan!');
+}
+
+function deleteReminder(id) {
+  const list = getReminders().filter(function(r) { return r.id !== id; });
+  saveReminders(list);
+  renderReminders();
+  showToast('🗑️ Dihapus!');
+}
+
+function renderReminders() {
+  const el = document.getElementById('reminder-container');
+  if (!el) return;
+  const list = getReminders();
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-emoji">🔔</span>Belum ada reminder~</div>';
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const soon = new Date(today); soon.setDate(soon.getDate() + 7);
+  list.sort(function(a,b) { return new Date(a.tanggal) - new Date(b.tanggal); });
+  let html = '<div class="reminder-list">';
+  list.forEach(function(r) {
+    const due = new Date(r.tanggal); due.setHours(0,0,0,0);
+    let status, chip;
+    if (due < today) { status = 'overdue'; chip = '🚨 Lewat jatuh tempo'; }
+    else if (due <= soon) { status = 'soon'; chip = '⚡ Dalam 7 hari'; }
+    else { status = 'ok'; chip = '✅ Aman'; }
+    html += '<div class="reminder-item ' + status + '">';
+    html += '<div style="font-size:1.4rem">' + (status === 'overdue' ? '🚨' : status === 'soon' ? '⚡' : '🔔') + '</div>';
+    html += '<div class="reminder-info">';
+    html += '<div class="reminder-name">' + r.nama + '<span class="reminder-chip ' + status + '">' + chip + '</span></div>';
+    html += '<div class="reminder-due">Jatuh tempo: ' + formatTanggal(r.tanggal) + (r.nominal > 0 ? ' · ' + formatRp(r.nominal) : '') + '</div>';
+    html += '</div>';
+    html += '<button class="reminder-del" onclick="deleteReminder('' + r.id + '')">🗑️</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Check overdue reminders on load
+function checkReminderAlert() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const soon = new Date(today); soon.setDate(soon.getDate() + 7);
+  const list = getReminders();
+  const urgent = list.filter(function(r) {
+    const due = new Date(r.tanggal); due.setHours(0,0,0,0);
+    return due <= soon;
+  });
+  if (urgent.length > 0) {
+    setTimeout(function() { showToast('🔔 ' + urgent.length + ' reminder butuh perhatian!'); }, 1500);
+  }
+}
+
 </script>
 </body>
 </html>
